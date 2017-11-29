@@ -18,19 +18,22 @@ class EWalletConsumer():
         self.DB = Query()
 
     def _update_db(self, message):
-        message = json.loads(message)
-        result = self.db.search(self.DB.action == message['action'] and \
-                                self.DB.npm == message['npm'])
+        try:
+            message = json.loads(message)
+            result = self.db.search(self.DB.action == message['action'] and \
+                                    self.DB.npm == message['npm'])
 
-        if len(result) > 0:
-            self.db.update({
-                'ts': message['ts']
-            }, self.DB.action == message['action'] and \
-               self.DB.npm == message['npm'])
-            print("DB updated: {}".format(message))
-        else:
-            self.db.insert(message)
-            print("DB inserted: {}".format(message))
+            if len(result) > 0:
+                self.db.update({
+                    'ts': message['ts']
+                }, self.DB.action == message['action'] and \
+                   self.DB.npm == message['npm'])
+                print("DB updated: {}".format(message))
+            else:
+                self.db.insert(message)
+                print("DB inserted: {}".format(message))
+        except Exception as e:
+            print("Error updating DB: ".format(e.message))
 
     def _ping_callback(self, ch, method, properties, body):
         print("Ping received: {}".format(body))
