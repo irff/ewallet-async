@@ -46,7 +46,7 @@ class EWalletConsumer():
 
         result = channel.queue_declare(exclusive=True)
         queue_name = result.method.queue
-        channel.queue_bind(exchange='logs',
+        channel.queue_bind(exchange=self.exchange_name,
                            queue=queue_name)
         channel.basic_consume(self._ping_callback,
                               queue=queue_name,
