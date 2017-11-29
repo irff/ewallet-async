@@ -47,10 +47,12 @@ class EWalletPublisher():
 
     def publish_ping(self):
         try:
-            schedule.every(5).seconds.do(self._run_threaded, self._ping())
-            while 1:
+            schedule.every(5).seconds.do(self._run_threaded, self._ping)
+
+            while True:
                 schedule.run_pending()
-                time.sleep(5)
+                time.sleep(1)
+
         except Exception as e:
             print("Error running ping {}".format(e.message))
 
