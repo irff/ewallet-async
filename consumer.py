@@ -33,7 +33,7 @@ class EWalletConsumer():
             print("DB inserted: {}".format(message))
 
     def _ping_callback(self, ch, method, properties, body):
-        print("Callback called: {}".format(body))
+        print("Ping received: {}".format(body))
         self._update_db(body)
 
     def consume_ping(self):
@@ -51,6 +51,7 @@ class EWalletConsumer():
         channel.basic_consume(self._ping_callback,
                               queue=queue_name,
                               no_ack=True)
+        channel.start_consuming()
 
 
 ewallet_consumer = EWalletConsumer('172.17.0.3', 'EX_PING', '1306398983')
