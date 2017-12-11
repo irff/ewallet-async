@@ -52,6 +52,17 @@ class EWalletPublisher():
 
         return json.dumps(message)
 
+    def _build_saldo_request_message(self, user_id):
+        message = {
+            'action': 'get_saldo',
+            'user_id': user_id,
+            'type': 'request',
+            'sender_id': self.npm,
+            'ts': self._get_timestamp()
+        }
+
+        return json.dumps(message)
+
     def _build_saldo_response_message(self, nilai_saldo):
         message = {
             'action': 'get_saldo',
@@ -119,7 +130,6 @@ class EWalletPublisher():
                                                                                                self.ex_register,
                                                                                                routing_key))
 
-
     def publish_register_response(self, status_register, sender_id):
         routing_key = 'RESP_{}'.format(sender_id)
         message = self._build_register_response_message(status_register)
@@ -127,6 +137,15 @@ class EWalletPublisher():
         self.publish_direct(self.ex_register, routing_key, message)
 
         print("Published REGISTER RESPONSE message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
+
+    def publish_saldo_request(self, user_id, receiver_id):
+        routing_key = 'REQ_{}'.format(receiver_id)
+        message = self._build_saldo_request_message(user_id)
+
+        self.publish_direct(self.ex_saldo, routing_key, message)
+        print("Published GET SALDO REQUEST message ({}), to exchange {}, routing key {}".format(message,
+                                                                                                self.ex_saldo,
+                                                                                                routing_key))
 
     def publish_saldo_response(self, nilai_saldo, sender_id):
         routing_key = 'RESP_{}'.format(sender_id)

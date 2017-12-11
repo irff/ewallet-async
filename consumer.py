@@ -89,6 +89,10 @@ class EWalletConsumer():
 
         self.publisher.publish_register_response(status_register=status_register, sender_id=sender_id)
 
+    def _saldo_response_callback(self, ch, method, properties, body):
+        print('Received GET SALDO RESPONSE: {}'.format(body))
+
+
     def _saldo_request_callback(self, ch, method, properties, body):
         print('Received GET SALDO REQUEST: {}'.format(body))
 
@@ -148,6 +152,10 @@ class EWalletConsumer():
     def consume_register_request(self):
         routing_key = 'REQ_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_register, self._register_request_callback)
+
+    def consume_saldo_response(self):
+        routing_key = 'RESP_{}'.format(self.npm)
+        self._consume_direct(routing_key, self.ex_saldo, self._saldo_response_callback)
 
     def consume_saldo_request(self):
         routing_key = 'REQ_{}'.format(self.npm)
