@@ -99,11 +99,11 @@ class EWalletPublisher():
                                                                        credentials=self.credentials))
         channel = connection.channel()
 
-        channel.exchange_declare(exchange=self.ex_register,
+        channel.exchange_declare(exchange=exchange,
                                  exchange_type='direct',
                                  durable=True)
 
-        channel.basic_publish(exchange=self.ex_register,
+        channel.basic_publish(exchange=exchange,
                               routing_key=routing_key,
                               body=message)
 
