@@ -58,7 +58,7 @@ class EWalletPublisher():
                               routing_key='',
                               body=message)
 
-        print("Publishing PING message ({}) to exchange {}".format(message, self.ex_ping))
+        # print("Publishing PING message ({}) to exchange {}".format(message, self.ex_ping))
 
         connection.close()
 

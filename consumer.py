@@ -4,6 +4,7 @@ import pika
 
 from tinydb import TinyDB, Query
 
+SENDER_ID = '1306398983'
 
 class EWalletConsumer():
     def __init__(self, queue_url, npm):
@@ -31,15 +32,15 @@ class EWalletConsumer():
                     'ts': message['ts']
                 }, self.DB.action == message['action'] and \
                    self.DB.npm == message['npm'])
-                print("DB updated: {}".format(message))
+                # print("DB updated: {}".format(message))
             else:
                 self.db.insert(message)
-                print("DB inserted: {}".format(message))
+                # print("DB inserted: {}".format(message))
         except Exception as e:
             print("Error updating DB: ".format(e.message))
 
     def _ping_callback(self, ch, method, properties, body):
-        print("PING received: {}".format(body))
+        # print("PING received: {}".format(body))
         self._update_db(body)
 
     def _register_response_callback(self, ch, method, properties, body):
@@ -62,7 +63,8 @@ class EWalletConsumer():
                               no_ack=True)
         channel.start_consuming()
 
-    def consume_register_response(self, routing_key):
+    def consume_register_response(self):
+        routing_key = 'RESP_{}'.format(SENDER_ID)
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
         channel = connection.channel()
