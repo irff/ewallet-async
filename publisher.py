@@ -6,8 +6,6 @@ import threading
 import time
 from datetime import datetime
 
-SENDER_ID = '1306398983'
-
 class EWalletPublisher():
     def __init__(self, queue_url, npm):
         self.queue_url = queue_url
@@ -44,6 +42,15 @@ class EWalletPublisher():
 
         return json.dumps(message)
 
+    def _build_register_response_message(self, status_register):
+        message = {
+            'action': 'register',
+            'type': 'response',
+            'status_register': status_register,
+            'ts': self._get_timestamp()
+        }
+
+        return json.dumps(message)
 
     def _ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
@@ -77,7 +84,7 @@ class EWalletPublisher():
         except Exception as e:
             print("Error running ping {}".format(e.message))
 
-    def publish_register_request(self, user_id, nama, routing_key):
+    def publish_direct(self, exchange, routing_key, message):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
         channel = connection.channel()
@@ -86,12 +93,24 @@ class EWalletPublisher():
                                  exchange_type='direct',
                                  durable=True)
 
-        message = self._build_register_request_message(user_id, nama)
         channel.basic_publish(exchange=self.ex_register,
                               routing_key=routing_key,
                               body=message)
 
-        print("Publishing REGISTER message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
-
         connection.close()
 
+    def publish_register_request(self, user_id, nama, receiver_id):
+        routing_key = 'REQ_{}'.format(receiver_id)
+        message = self._build_register_request_message(user_id, nama)
+
+        self.publish_direct(self.ex_register, routing_key, message)
+
+        print("Published REGISTER REQUEST message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
+
+    def publish_register_response(self, status_register, sender_id):
+        routing_key = 'RESP_{}'.format(sender_id)
+        message = self._build_register_response_message(status_register)
+
+        self.publish_direct(self.ex_register, routing_key, message)
+
+        print("Published REGISTER RESPONSE message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
