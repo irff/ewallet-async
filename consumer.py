@@ -151,4 +151,4 @@ class EWalletConsumer():
 
     def consume_saldo_request(self):
         routing_key = 'REQ_{}'.format(self.npm)
-        self._consume_direct(routing_key, self.ex_saldo, self._saldo_request_callback())
+        self._consume_direct(routing_key, self.ex_saldo, self._saldo_request_callback)
