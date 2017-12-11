@@ -6,38 +6,59 @@ import threading
 import time
 from datetime import datetime
 
+SENDER_ID = '1306398983'
 
 class EWalletPublisher():
-    def __init__(self, queue_url, exchange_name, npm):
+    def __init__(self, queue_url, npm):
         self.queue_url = queue_url
-        self.exchange_name = exchange_name
         self.credentials = pika.PlainCredentials('sisdis', 'sisdis')
         self.npm = npm
+        self.ex_ping =  'EX_PING'
+        self.ex_register = 'EX_REGISTER'
+        self.ex_saldo = 'EX_GET_SALDO'
+        self.ex_transfer = 'EX_TRANSFER'
+        self.ex_total_saldo = 'EX_GET_TOTAL_SALDO'
 
-    def _get_ping_message(self):
+    def _get_timestamp(self):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        return timestamp
+
+    def _build_ping_message(self):
         message = {
             'action': 'ping',
             'npm': self.npm,
-            'ts': timestamp
+            'ts': self._get_timestamp()
         }
 
         return json.dumps(message)
+
+    def _build_register_request_message(self, user_id, nama):
+        message = {
+            'action': 'register',
+            'user_id': user_id,
+            'nama': nama,
+            'sender_id': self.npm,
+            'type': 'request',
+            'ts': self._get_timestamp()
+        }
+
+        return json.dumps(message)
+
 
     def _ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
         channel = connection.channel()
 
-        channel.exchange_declare(exchange=self.exchange_name,
+        channel.exchange_declare(exchange=self.ex_ping,
                                  exchange_type='fanout')
 
-        message = self._get_ping_message()
-        channel.basic_publish(exchange=self.exchange_name,
+        message = self._build_ping_message()
+        channel.basic_publish(exchange=self.ex_ping,
                               routing_key='',
                               body=message)
 
-        print("Sending message ({}) to exchange {}".format(message, self.exchange_name))
+        print("Publishing PING message ({}) to exchange {}".format(message, self.ex_ping))
 
         connection.close()
 
@@ -56,6 +77,20 @@ class EWalletPublisher():
         except Exception as e:
             print("Error running ping {}".format(e.message))
 
+    def publish_register_request(self, user_id, nama, routing_key):
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
+                                                                       credentials=self.credentials))
+        channel = connection.channel()
 
-ewallet_publisher = EWalletPublisher('172.17.0.3', 'EX_PING', '1306398983')
-ewallet_publisher.publish_ping()
+        channel.exchange_declare(exchange=self.ex_register,
+                                 exchange_type='direct')
+
+        message = self._build_register_request_message(user_id, nama)
+        channel.basic_publish(exchange=self.ex_register,
+                              routing_key=routing_key,
+                              body=message)
+
+        print("Publishing REGISTER message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
+
+        connection.close()
+
