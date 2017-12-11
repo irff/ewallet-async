@@ -1,3 +1,4 @@
+import threading
 from publisher import EWalletPublisher
 from consumer import EWalletConsumer
 
@@ -9,6 +10,9 @@ class EWalletRunner():
 
         self.publisher.publish_ping()
         self.consumer.consume_ping()
+
+        consume_ping_thread = threading.Thread(target=self.consumer.consume_ping)
+        consume_ping_thread.start()
 
     def do_register(self, user_id, nama, receiver):
         req_routing_key = 'REQ_{}'.format(receiver)
