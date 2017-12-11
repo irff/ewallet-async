@@ -52,6 +52,16 @@ class EWalletPublisher():
 
         return json.dumps(message)
 
+    def _build_saldo_response_message(self, nilai_saldo):
+        message = {
+            'action': 'get_saldo',
+            'type': 'response',
+            'nilai_saldo': nilai_saldo,
+            'ts': self._get_timestamp()
+        }
+
+        return json.dumps(message)
+
     def _ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
@@ -105,7 +115,10 @@ class EWalletPublisher():
 
         self.publish_direct(self.ex_register, routing_key, message)
 
-        print("Published REGISTER REQUEST message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
+        print("Published REGISTER REQUEST message ({}), to exchange {}, routing key {}".format(message,
+                                                                                               self.ex_register,
+                                                                                               routing_key))
+
 
     def publish_register_response(self, status_register, sender_id):
         routing_key = 'RESP_{}'.format(sender_id)
@@ -114,3 +127,12 @@ class EWalletPublisher():
         self.publish_direct(self.ex_register, routing_key, message)
 
         print("Published REGISTER RESPONSE message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
+
+    def publish_saldo_response(self, nilai_saldo, sender_id):
+        routing_key = 'RESP_{}'.format(sender_id)
+        message = self._build_saldo_response_message(nilai_saldo)
+
+        self.publish_direct(self.ex_saldo, routing_key, message)
+        print("Published GET SALDO RESPONSE message ({}), to exchange {}, routing key {}".format(message,
+                                                                                                self.ex_register,
+                                                                                                routing_key))

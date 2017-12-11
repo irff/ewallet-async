@@ -28,8 +28,13 @@ class EWalletConsumer():
         result = self.db.search(self.DB.user_id == user_id and self.DB.nilai_saldo.exists())
         if len(result) > 0:
             return True
-        else:
-            return False
+        return False
+
+    def _retrieve_saldo(self, user_id):
+        result = self.db.search(self.DB.user_id == user_id and self.DB.nilai_saldo.exists())
+        if len(result) > 0:
+            return int(result[0]['nilai_saldo'])
+        return -1
 
     # message = dict
     def _update_db(self, message):
@@ -72,7 +77,7 @@ class EWalletConsumer():
             }
 
             if self._quorum_check():
-                if not self._has_registered(message['user_id']):
+                if not self._has_registered(body['user_id']):
                     self._update_db(message)
                     status_register = 1
                 else:
@@ -83,6 +88,22 @@ class EWalletConsumer():
             status_register = -99
 
         self.publisher.publish_register_response(status_register=status_register, sender_id=sender_id)
+
+    def _saldo_request_callback(self, ch, method, properties, body):
+        print('Received GET SALDO REQUEST: {}'.format(body))
+
+        body = json.loads(body)
+        sender_id = body['sender_id']
+
+        try:
+            if self._quorum_check():
+                nilai_saldo = self._retrieve_saldo(body['user_id'])
+            else:
+                nilai_saldo = -2
+        except:
+            nilai_saldo = -99
+
+        self.publisher.publish_saldo_response(nilai_saldo=nilai_saldo, sender_id=sender_id)
 
     def consume_ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
@@ -128,3 +149,6 @@ class EWalletConsumer():
         routing_key = 'REQ_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_register, self._register_request_callback)
 
+    def consume_saldo_request(self):
+        routing_key = 'REQ_{}'.format(self.npm)
+        self._consume_direct(routing_key, self.ex_saldo, self._saldo_request_callback())

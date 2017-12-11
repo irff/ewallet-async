@@ -14,15 +14,20 @@ class EWalletRunner():
         consume_ping_thread = threading.Thread(target=self.consumer.consume_ping)
         consume_ping_thread.start()
 
-        consumer_register_request_thread = threading.Thread(
+        consume_register_request_thread = threading.Thread(
             target=self.consumer.consume_register_request
         )
-        consumer_register_request_thread.start()
+        consume_register_request_thread.start()
 
         consume_register_response_thread = threading.Thread(
             target=self.consumer.consume_register_response
         )
         consume_register_response_thread.start()
+
+        consume_saldo_request_thread = threading.Thread(
+            target=self.consumer.consume_saldo_request
+        )
+        consume_saldo_request_thread.start()
 
     def do_register(self, user_id, nama, receiver_id):
 
