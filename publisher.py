@@ -134,5 +134,5 @@ class EWalletPublisher():
 
         self.publish_direct(self.ex_saldo, routing_key, message)
         print("Published GET SALDO RESPONSE message ({}), to exchange {}, routing key {}".format(message,
-                                                                                                self.ex_register,
+                                                                                                self.ex_saldo,
                                                                                                 routing_key))
