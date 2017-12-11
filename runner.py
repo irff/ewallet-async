@@ -8,8 +8,8 @@ class EWalletRunner():
         self.publisher = EWalletPublisher('172.17.0.3', '1306398983')
         self.consumer = EWalletConsumer('172.17.0.3', '1306398983')
 
-        self.publisher.publish_ping()
-        self.consumer.consume_ping()
+        publish_ping_thread = threading.Thread(target=self.publisher.publish_ping)
+        publish_ping_thread.start()
 
         consume_ping_thread = threading.Thread(target=self.consumer.consume_ping)
         consume_ping_thread.start()
