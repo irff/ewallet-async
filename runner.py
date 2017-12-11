@@ -39,3 +39,5 @@ class EWalletRunner():
 
     def do_get_saldo(self, user_id, receiver_id):
         self.publisher.publish_saldo_request(user_id, receiver_id)
+
+runner = EWalletRunner()

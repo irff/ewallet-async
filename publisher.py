@@ -73,6 +73,18 @@ class EWalletPublisher():
 
         return json.dumps(message)
 
+    def _build_transfer_request_message(self, user_id, nilai):
+        message = {
+            'action': 'transfer',
+            'user_id': user_id,
+            'nilai': nilai,
+            'type': 'request',
+            'sender_id': self.npm,
+            'ts': self._get_timestamp()
+        }
+
+        return json.dumps(message)
+
     def _ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
@@ -155,3 +167,12 @@ class EWalletPublisher():
         print("Published GET SALDO RESPONSE message ({}), to exchange {}, routing key {}".format(message,
                                                                                                 self.ex_saldo,
                                                                                                 routing_key))
+
+    def publish_transfer_request(self, user_id, nilai, sender_id):
+        routing_key = 'REQ_{}'.format(sender_id)
+        message = self._build_transfer_request_message(user_id, nilai)
+
+        self.publish_direct(self.ex_transfer, routing_key, message)
+        print("Published TRANSFER REQUEST message ({}), to exchange {}, routing key {}".format(message,
+                                                                                               self.ex_saldo,
+                                                                                               routing_key))

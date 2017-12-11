@@ -36,6 +36,17 @@ class EWalletConsumer():
             return int(result[0]['nilai_saldo'])
         return -1
 
+    def _add_saldo(self, user_id, nilai):
+        result = self.db.search(self.DB.user_id == user_id and self.DB.nilai_saldo.exists())
+        if len(result) > 0:
+            initial_value = result[0]['nilai_saldo']
+            final_value = int(initial_value) + int(nilai)
+            self.db.update({
+                'nilai_saldo': final_value
+            }, self.DB.user_id == user_id)
+            return 1
+        return -4
+
     # message = dict
     def _update_db(self, message):
         result = self.db.search(self.DB.user_id == message['user_id'])
@@ -108,6 +119,24 @@ class EWalletConsumer():
             nilai_saldo = -99
 
         self.publisher.publish_saldo_response(nilai_saldo=nilai_saldo, sender_id=sender_id)
+
+    def _transfer_response_callback(self, ch, method, properties, body):
+        print('Received TRANSFER RESPONSE: {}'.format(body))
+
+    def _transfer_request_callback(self, ch, method, properties, body):
+        print('Received TRANSFER REQUEST: {}'.format(body))
+
+        body = json.loads(body)
+        sender_id = body['sender_id']
+
+        try:
+            if self._quorum_check():
+                status_transfer = self._add_saldo()
+            else:
+                status_transfer = -2
+        except:
+            status_transfer = -99
+
 
     def consume_ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
