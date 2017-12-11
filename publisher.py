@@ -83,7 +83,8 @@ class EWalletPublisher():
         channel = connection.channel()
 
         channel.exchange_declare(exchange=self.ex_register,
-                                 exchange_type='direct')
+                                 exchange_type='direct',
+                                 durable=True)
 
         message = self._build_register_request_message(user_id, nama)
         channel.basic_publish(exchange=self.ex_register,
