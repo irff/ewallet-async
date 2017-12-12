@@ -31,10 +31,10 @@ class EWalletRunner():
         )
         consume_saldo_request_thread.start()
 
-        # consume_saldo_response_thread = threading.Thread(
-        #     target=self.consumer.consume_saldo_response
-        # )
-        # consume_saldo_response_thread.start()
+        consume_saldo_response_thread = threading.Thread(
+            target=self.consumer.consume_saldo_response
+        )
+        consume_saldo_response_thread.start()
 
         # === TRANSFER
 
@@ -42,11 +42,6 @@ class EWalletRunner():
             target=self.consumer.consume_transfer_request
         )
         consume_transfer_request_thread.start()
-
-        consume_transfer_request_thread2 = threading.Thread(
-            target=self.consumer.consume_transfer_request
-        )
-        consume_transfer_request_thread2.start()
 
         consume_transfer_response_thread = threading.Thread(
             target=self.consumer.consume_transfer_response
@@ -69,7 +64,6 @@ class EWalletRunner():
 
     def do_get_saldo(self, user_id, receiver_id):
         self.publisher.publish_saldo_request(user_id, receiver_id)
-        self.consumer.consume_saldo_response()
 
     def do_transfer(self, user_id, nilai, receiver_id):
         self.publisher.publish_transfer_request(user_id, nilai, receiver_id)
