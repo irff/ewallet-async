@@ -48,6 +48,11 @@ class EWalletRunner():
         consume_transfer_response_thread.start()
 
         # === GET TOTAL SALDO
+        consume_total_saldo_request_thread = threading.Thread(
+            target=self.consumer.consume_total_saldo_request
+        )
+        consume_total_saldo_request_thread.start()
+
         consume_total_saldo_response_thread = threading.Thread(
             target=self.consumer.consume_total_saldo_response
         )
