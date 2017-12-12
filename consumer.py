@@ -27,13 +27,16 @@ class EWalletConsumer():
     def _has_registered(self, user_id):
         result = self.db.search(self.DB.user_id == user_id and self.DB.nilai_saldo.exists())
         if len(result) > 0:
+            print("{} has registered".format(user_id))
             return True
         return False
 
     def _retrieve_saldo(self, user_id):
         result = self.db.search(self.DB.user_id == user_id and self.DB.nilai_saldo.exists())
         if len(result) > 0:
-            return int(result[0]['nilai_saldo'])
+            value = int(result[0]['nilai_saldo'])
+            print("Retrieving saldo of {}, value {}".format(user_id, value))
+            return value
         return -1
 
     def _add_saldo(self, user_id, nilai):

@@ -14,6 +14,7 @@ class EWalletRunner():
         consume_ping_thread = threading.Thread(target=self.consumer.consume_ping)
         consume_ping_thread.start()
 
+        # === REGISTER
         consume_register_request_thread = threading.Thread(
             target=self.consumer.consume_register_request
         )
@@ -24,6 +25,7 @@ class EWalletRunner():
         )
         consume_register_response_thread.start()
 
+        # === GET SALDO
         consume_saldo_request_thread = threading.Thread(
             target=self.consumer.consume_saldo_request
         )
@@ -34,6 +36,7 @@ class EWalletRunner():
         )
         consume_saldo_response_thread.start()
 
+        # === TRANSFER
         consume_transfer_request_thread = threading.Thread(
             target=self.consumer.consume_transfer_request
         )
