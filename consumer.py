@@ -31,11 +31,11 @@ class EWalletConsumer():
             '1306398983',  # irfan
             '1406579100',  # wahyu
             '1406543574',  # oda
-            '1406543845', # gilang
-            '1406559055', # ghozi
+            '1406543845',  # gilang
+            '1406559055',  # ghozi
             '1406572025',  # adit
             '1406543883',  # jefly
-            '1406559036', # gales
+            '1406559036',  # gales
         ]
 
     def _quorum_check(self):
@@ -142,7 +142,6 @@ class EWalletConsumer():
     def _saldo_response_callback(self, ch, method, properties, body):
         print('Received GET SALDO RESPONSE: {}'.format(body))
 
-
     def _saldo_request_callback(self, ch, method, properties, body):
         print('Received GET SALDO REQUEST: {}'.format(body))
 
@@ -177,6 +176,9 @@ class EWalletConsumer():
             status_transfer = -99
 
         self.publisher.publish_transfer_response(status_transfer=status_transfer, sender_id=sender_id)
+
+    def _total_saldo_response_callback(self, ch, method, properties, body):
+        print('Received GET TOTAL SALDO RESPONSE: {}'.format(body))
 
     def consume_ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
@@ -238,3 +240,6 @@ class EWalletConsumer():
         routing_key = 'RESP_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_transfer, self._transfer_response_callback)
 
+    def consume_total_saldo_response(self):
+        routing_key = 'RESP_{}'.format(self.npm)
+        self._consume_direct(routing_key, self.ex_total_saldo, self._total_saldo_response_callback)

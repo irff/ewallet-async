@@ -55,3 +55,6 @@ class EWalletRunner():
 
     def do_transfer(self, user_id, nilai, receiver_id):
         self.publisher.publish_transfer_request(user_id, nilai, receiver_id)
+
+    def do_get_total_saldo(self, user_id, receiver_id):
+        self.publisher.publish_total_saldo_request(user_id, receiver_id)
