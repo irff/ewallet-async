@@ -43,7 +43,7 @@ class EWalletConsumer():
         active = []
 
         for neighbor in neighbors:
-            result = self.db.get((self.DB.user_id == neighbor))
+            result = self.db.get((self.DB.user_id == neighbor) & (self.DB.ts.exists()))
 
             if result is not None:
                 ts_now = datetime.now()
