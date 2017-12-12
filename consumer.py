@@ -38,9 +38,10 @@ class EWalletConsumer():
             '1406559036',  # gales
         ]
 
-    def _quorum_check(self):
+    def _get_active_neighbors(self):
         neighbors = self._get_neighbors()
-        quorum = 0
+        active = []
+
         for neighbor in neighbors:
             result = self.db.get((self.DB.user_id == neighbor))
 
@@ -52,10 +53,14 @@ class EWalletConsumer():
                 ts_diff = (ts_now - ts_neighbor).seconds
                 print('PING Time diff {}: {} seconds'.format(neighbor, ts_diff))
                 if ts_diff <= 10:
-                    quorum += 1
+                    active.append(neighbor)
             else:
                 print('PING Not found {}'.format(neighbor))
 
+        return active
+
+    def _quorum_check(self):
+        quorum = len(self._get_active_neighbors())
         print('QUORUM={}'.format(quorum))
 
         return quorum
@@ -180,6 +185,38 @@ class EWalletConsumer():
     def _total_saldo_response_callback(self, ch, method, properties, body):
         print('Received GET TOTAL SALDO RESPONSE: {}'.format(body))
 
+    def _total_saldo_request_callback(self, ch, method, properties, body):
+        print('Received GET TOTAL SALDO REQUEST: {}'.format(body))
+
+        body = json.loads(body)
+        sender_id = body['sender_id']
+        user_id = body['user_id']
+
+        try:
+            active_neighbors = self._get_active_neighbors()
+            neighbor_count = len(active_neighbors)
+
+            if neighbor_count >= HALF_QUORUM:
+                for neighbor in active_neighbors:
+                    self.publisher.publish_saldo_request(user_id, neighbor)
+
+                consumer = TotalSaldoConsumer(queue_url=self.queue_url,
+                                              npm=self.npm,
+                                              publisher=self.publisher,
+                                              neighbor_count=neighbor_count)
+
+                consumer.consume_saldo_response_total()
+
+            else:
+                nilai_saldo = -2
+                self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
+                                                            sender_id=sender_id)
+
+        except:
+            nilai_saldo = -99
+            self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
+                                                        sender_id=sender_id)
+
     def consume_ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
@@ -224,6 +261,7 @@ class EWalletConsumer():
         routing_key = 'REQ_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_register, self._register_request_callback)
 
+
     def consume_saldo_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_saldo, self._saldo_response_callback)
@@ -240,6 +278,60 @@ class EWalletConsumer():
         routing_key = 'RESP_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_transfer, self._transfer_response_callback)
 
+    def consume_total_saldo_request(self):
+        routing_key = 'REQ_{}'.format(self.npm)
+        self._consume_direct(routing_key, self.ex_total_saldo, self._total_saldo_request_callback)
+
     def consume_total_saldo_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_total_saldo, self._total_saldo_response_callback)
+
+class TotalSaldoConsumer():
+    def __init__(self, queue_url, npm, publisher, neighbor_count):
+        self.queue_url = queue_url
+        self.credentials = pika.PlainCredentials('sisdis', 'sisdis')
+        self.npm = npm
+        self.ex_saldo = 'EX_GET_SALDO'
+        self.publisher = publisher
+
+        self.neighbor_count = neighbor_count
+
+        self.total_saldo = 0
+
+    def _saldo_total_response_callback(self, ch, method, properties, body):
+        print('Received GET SALDO RESPONSE (TOTAL): {}'.format(body))
+
+        body = json.loads(body)
+        nilai_saldo = int(body['nilai_saldo'])
+
+        print('USER_COUNT={}'.format(self.neighbor_count))
+        self.neighbor_count -= 1
+
+        if nilai_saldo not in [-1, -2, -4, -99]:
+            self.total_saldo += nilai_saldo
+
+        if self.neighbor_count <= 0:
+            ch.connection.close()
+            self.publisher.publish_total_saldo_response(nilai_saldo=self.total_saldo,
+                                                        sender_id=self.npm)
+
+    def consume_saldo_response_total(self):
+        print('Consuming saldo response total')
+        routing_key = 'RESP_{}'.format(self.npm)
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
+                                                                       credentials=self.credentials))
+        channel = connection.channel()
+
+        channel.exchange_declare(exchange=self.ex_saldo,
+                                 exchange_type='direct',
+                                 durable=True)
+
+        result = channel.queue_declare(exclusive=True)
+        queue_name = result.method.queue
+        channel.queue_bind(exchange=self.ex_saldo,
+                           queue=queue_name,
+                           routing_key=routing_key)
+        channel.basic_consume(consumer_callback=self._saldo_total_response_callback,
+                              queue=queue_name,
+                              no_ack=True)
+        channel.start_consuming()

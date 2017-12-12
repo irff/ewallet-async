@@ -106,6 +106,17 @@ class EWalletPublisher():
 
         return json.dumps(message)
 
+    def _build_total_saldo_response_message(self, nilai_saldo):
+        message = {
+            'action': 'get_total_saldo',
+            'type': 'response',
+            'sender_id': self.npm,
+            'nilai_saldo': nilai_saldo,
+            'ts': self._get_timestamp()
+        }
+
+        return json.dumps(message)
+
     def _ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
@@ -215,3 +226,12 @@ class EWalletPublisher():
         print("Published GET TOTAL SALDO REQUEST msg ({}), to exchange {}, routing key {}".format(message,
                                                                                                   self.ex_total_saldo,
                                                                                                   routing_key))
+
+    def publish_total_saldo_response(self, nilai_saldo, sender_id):
+        routing_key = 'RESP_{}'.format(sender_id)
+        message = self._build_total_saldo_response_message(nilai_saldo)
+
+        self.publish_direct(self.ex_total_saldo, routing_key, message)
+        print("Published GET TOTAL SALDO RESPONSE msg ({}), to exchange {}, routing key {}".format(message,
+                                                                                                   self.ex_total_saldo,
+                                                                                                   routing_key))
