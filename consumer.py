@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 import json
 import pika
+from datetime import datetime
 
 from publisher import EWalletPublisher
 from tinydb import TinyDB, Query
+
+FULL_QUORUM = 8
+HALF_QUORUM = 5
+NO_QUORUM = 0
 
 class EWalletConsumer():
     def __init__(self, queue_url, npm, publisher):
@@ -21,8 +26,39 @@ class EWalletConsumer():
         self.db = TinyDB('db.json')
         self.DB = Query()
 
+    def _get_neighbors(self):
+        return [
+            '1306398983',  # irfan
+            '1406579100',  # wahyu
+            '1406543574',  # oda
+            '1406543845', # gilang
+            '1406559055', # ghozi
+            '1406572025',  # adit
+            '1406543883',  # jefly
+            '1406559036', # gales
+        ]
+
     def _quorum_check(self):
-        return True
+        neighbors = self._get_neighbors()
+        quorum = 0
+        for neighbor in neighbors:
+            result = self.db.get((self.DB.user_id == neighbor))
+
+            if result is not None:
+                ts_now = datetime.now()
+                ts_neighbor_str = result['ts']
+                ts_neighbor = datetime.strptime(ts_neighbor_str, '%Y-%m-%d %H:%M:%S')
+
+                ts_diff = (ts_now - ts_neighbor).seconds
+                print('PING Time diff {}: {} seconds'.format(neighbor, ts_diff))
+                if ts_diff <= 10:
+                    quorum += 1
+            else:
+                print('PING Not found {}'.format(neighbor))
+
+        print('QUORUM={}'.format(quorum))
+
+        return quorum
 
     def _has_registered(self, user_id):
         result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
@@ -90,7 +126,7 @@ class EWalletConsumer():
                 'nilai_saldo': 0
             }
 
-            if self._quorum_check():
+            if self._quorum_check() >= HALF_QUORUM:
                 if not self._has_registered(body['user_id']):
                     self._update_db(message)
                     status_register = 1
@@ -114,7 +150,7 @@ class EWalletConsumer():
         sender_id = body['sender_id']
 
         try:
-            if self._quorum_check():
+            if self._quorum_check() >= HALF_QUORUM:
                 nilai_saldo = self._retrieve_saldo(body['user_id'])
             else:
                 nilai_saldo = -2
@@ -133,7 +169,7 @@ class EWalletConsumer():
         sender_id = body['sender_id']
 
         try:
-            if self._quorum_check():
+            if self._quorum_check() >= HALF_QUORUM:
                 status_transfer = self._add_saldo(body['user_id'], body['nilai'])
             else:
                 status_transfer = -2
