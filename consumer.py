@@ -192,31 +192,28 @@ class EWalletConsumer():
         sender_id = body['sender_id']
         user_id = body['user_id']
 
-        try:
-            active_neighbors = self._get_active_neighbors()
-            neighbor_count = len(active_neighbors)
+        active_neighbors = self._get_active_neighbors()
+        neighbor_count = len(active_neighbors)
 
-            if neighbor_count >= HALF_QUORUM:
+        if neighbor_count >= HALF_QUORUM:
 
-                consumer = TotalSaldoConsumer(queue_url=self.queue_url,
-                                              npm=self.npm,
-                                              publisher=self.publisher,
-                                              neighbor_count=neighbor_count)
+            consumer = TotalSaldoConsumer(queue_url=self.queue_url,
+                                          npm=self.npm,
+                                          publisher=self.publisher,
+                                          neighbor_count=neighbor_count)
 
-                consumer.consume_saldo_response_total()
+            consumer.consume_saldo_response_total()
 
-                for neighbor in active_neighbors:
-                    self.publisher.publish_saldo_request(user_id, neighbor)
+            for neighbor in active_neighbors:
+                self.publisher.publish_saldo_request(user_id, neighbor)
 
-            else:
-                nilai_saldo = -2
-                self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
-                                                            sender_id=sender_id)
-
-        except Exception as e:
-            print('Error callback GET TOTAL SALDO: {}'.format(e.message))
-            nilai_saldo = -99
+        else:
+            nilai_saldo = -2
             self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
+                                                        sender_id=sender_id)
+
+        nilai_saldo = -99
+        self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
                                                         sender_id=sender_id)
 
     def consume_ping(self):
