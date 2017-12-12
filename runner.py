@@ -40,7 +40,7 @@ class EWalletRunner():
         consume_transfer_request_thread.start()
 
         consume_transfer_response_thread = threading.Thread(
-            target=self.consumer.consume_register_response
+            target=self.consumer.consume_transfer_response()
         )
         consume_transfer_response_thread.start()
 
@@ -52,5 +52,3 @@ class EWalletRunner():
 
     def do_transfer(self, user_id, nilai, receiver_id):
         self.publisher.publish_transfer_request(user_id, nilai, receiver_id)
-
-runner = EWalletRunner()
