@@ -85,6 +85,16 @@ class EWalletPublisher():
 
         return json.dumps(message)
 
+    def _build_transfer_response_message(self, status_transfer):
+        message = {
+            'action': 'transfer',
+            'type': 'response',
+            'status_transfer': status_transfer,
+            'ts': self._get_timestamp()
+        }
+
+        return json.dumps(message)
+
     def _ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
@@ -174,5 +184,14 @@ class EWalletPublisher():
 
         self.publish_direct(self.ex_transfer, routing_key, message)
         print("Published TRANSFER REQUEST message ({}), to exchange {}, routing key {}".format(message,
+                                                                                               self.ex_saldo,
+                                                                                               routing_key))
+
+    def publish_transfer_response(self, status_transfer, sender_id):
+        routing_key = 'RESP_{}'.format(sender_id)
+        message = self._build_transfer_response_message(status_transfer)
+
+        self.publish_direct(self.ex_transfer, routing_key, message)
+        print("Published TRANSFER RESPONSE message ({}), to exchange {}, routing key {}".format(message,
                                                                                                self.ex_saldo,
                                                                                                routing_key))

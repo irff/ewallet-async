@@ -131,12 +131,13 @@ class EWalletConsumer():
 
         try:
             if self._quorum_check():
-                status_transfer = self._add_saldo()
+                status_transfer = self._add_saldo(body['user_id'], body['nilai'])
             else:
                 status_transfer = -2
         except:
             status_transfer = -99
 
+        self.publisher.publish_register_response(status_transfer=status_transfer, sender_id=sender_id)
 
     def consume_ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
