@@ -213,7 +213,8 @@ class EWalletConsumer():
                 self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
                                                             sender_id=sender_id)
 
-        except:
+        except Exception as e:
+            print('Error callback GET TOTAL SALDO: {}'.format(e.message))
             nilai_saldo = -99
             self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
                                                         sender_id=sender_id)
