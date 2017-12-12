@@ -25,24 +25,24 @@ class EWalletConsumer():
         return True
 
     def _has_registered(self, user_id):
-        result = self.db.search((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
-        if len(result) > 0:
+        result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
+        if result is not None:
             print("{} has registered".format(user_id))
             return True
         return False
 
     def _retrieve_saldo(self, user_id):
-        result = self.db.search((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
-        if len(result) > 0:
-            value = int(result[0]['nilai_saldo'])
+        result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
+        if result is not None:
+            value = int(result['nilai_saldo'])
             print("Retrieving saldo of {}, value {}".format(user_id, value))
             return value
         return -1
 
     def _add_saldo(self, user_id, nilai):
-        result = self.db.search((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
-        if len(result) > 0:
-            initial_value = result[0]['nilai_saldo']
+        result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
+        if result is not None:
+            initial_value = result['nilai_saldo']
             final_value = int(initial_value) + int(nilai)
             self.db.update({
                 'nilai_saldo': final_value
@@ -52,9 +52,9 @@ class EWalletConsumer():
 
     # message = dict
     def _update_db(self, message):
-        result = self.db.search(self.DB.user_id == message['user_id'])
+        result = self.db.get(self.DB.user_id == message['user_id'])
 
-        if len(result) > 0:
+        if result is not None:
             self.db.update({
                 'ts': message['ts']
             }, self.DB.user_id == message['user_id'])
