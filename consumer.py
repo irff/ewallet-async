@@ -7,7 +7,7 @@ from publisher import EWalletPublisher
 from tinydb import TinyDB, Query
 
 FULL_QUORUM = 8
-HALF_QUORUM = 5
+HALF_QUORUM = 3
 NO_QUORUM = 0
 
 class EWalletConsumer():
@@ -197,8 +197,6 @@ class EWalletConsumer():
             neighbor_count = len(active_neighbors)
 
             if neighbor_count >= HALF_QUORUM:
-                for neighbor in active_neighbors:
-                    self.publisher.publish_saldo_request(user_id, neighbor)
 
                 consumer = TotalSaldoConsumer(queue_url=self.queue_url,
                                               npm=self.npm,
@@ -206,6 +204,9 @@ class EWalletConsumer():
                                               neighbor_count=neighbor_count)
 
                 consumer.consume_saldo_response_total()
+
+                for neighbor in active_neighbors:
+                    self.publisher.publish_saldo_request(user_id, neighbor)
 
             else:
                 nilai_saldo = -2
@@ -285,6 +286,7 @@ class EWalletConsumer():
     def consume_total_saldo_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_total_saldo, self._total_saldo_response_callback)
+
 
 class TotalSaldoConsumer():
     def __init__(self, queue_url, npm, publisher, neighbor_count):
