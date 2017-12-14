@@ -40,28 +40,28 @@ class EWalletRunner():
         consume_total_saldo_request_thread.start()
 
     def do_register(self, user_id, nama, receiver_id):
-        self.publisher.publish_register_request(user_id, nama, receiver_id)
         consumer = threading.Thread(
             target=self.consumer.consume_register_response
         )
         consumer.start()
+        self.publisher.publish_register_request(user_id, nama, receiver_id)
 
     def do_get_saldo(self, user_id, receiver_id):
-        self.publisher.publish_saldo_request(user_id, receiver_id)
         consumer = threading.Thread(
             target=self.consumer.consume_saldo_response
         )
         consumer.start()
+        self.publisher.publish_saldo_request(user_id, receiver_id)
 
     def do_transfer(self, user_id, nilai, receiver_id):
         self.consumer.transfer_user_id = user_id
         self.consumer.transfer_nilai = nilai
-
-        self.publisher.publish_transfer_request(user_id, nilai, receiver_id)
         consumer = threading.Thread(
             target=self.consumer.consume_transfer_response
         )
         consumer.start()
+
+        self.publisher.publish_transfer_request(user_id, nilai, receiver_id)
 
     def do_get_total_saldo(self, user_id, receiver_id):
         consumer = threading.Thread(
