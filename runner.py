@@ -69,3 +69,5 @@ class EWalletRunner():
         )
         consumer.start()
         self.publisher.publish_total_saldo_request(user_id, receiver_id)
+
+runner = EWalletRunner()

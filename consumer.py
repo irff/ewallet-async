@@ -9,7 +9,7 @@ from publisher import EWalletPublisher
 from tinydb import TinyDB, Query
 
 FULL_QUORUM = 8
-HALF_QUORUM = 3
+HALF_QUORUM = 5
 NO_QUORUM = 0
 
 class EWalletConsumer():
@@ -33,22 +33,22 @@ class EWalletConsumer():
 
     def _get_neighbors(self):
         return [
-            '1306398983',  # functional
-            '1406579100',  # functional
-            '1406527620',  # functional
+            '1306398983',  # irfan
+            '1406579100',
+            '1406527620',
             '1406572025',
             '1406543712',
             '1406543826',
             '1406543845',  # gilang
             '1406543574',  # oda
-            '1406559055',  # ghozi
-            '1406572025',  # adit
-            '1406543883',  # jefly
-            '1406559036',  # gales
+            # '1406559055',  # ghozi
+            # '1406572025',  # adit
+            # '1406543883',  # jefly
+            # '1406559036',  # gales
         ]
 
     def _get_active_neighbors(self):
-        # print('Checking QUORUM')
+        print('Checking QUORUM')
         neighbors = self._get_neighbors()
         active = []
 
@@ -62,28 +62,26 @@ class EWalletConsumer():
                     ts_neighbor = datetime.strptime(ts_neighbor_str, '%Y-%m-%d %H:%M:%S')
 
                     ts_diff = (ts_now - ts_neighbor).seconds
-                    # print('PING Time diff {}: {} seconds'.format(neighbor, ts_diff))
+                    print('PING Time diff {}: {} seconds'.format(neighbor, ts_diff))
                     if ts_diff <= 10:
                         active.append(neighbor)
                 else:
-                    pass
-                    # print('PING Not found {}'.format(neighbor))
+                    print('PING Not found {}'.format(neighbor))
             except Exception as e:
-                pass
-                # print('Error retrieving from db: {}'.format(e.message))
+                print('Error retrieving from db: {}'.format(e.message))
 
         return active
 
     def _quorum_check(self):
         quorum = len(self._get_active_neighbors())
-        # print('QUORUM={}'.format(quorum))
+        print('QUORUM={}'.format(quorum))
 
         return quorum
 
     def _has_registered(self, user_id):
         result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
         if result is not None:
-            # print("{} has registered".format(user_id))
+            print("{} has registered".format(user_id))
             return True
         return False
 
@@ -91,7 +89,7 @@ class EWalletConsumer():
         result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
         if result is not None:
             value = int(result['nilai_saldo'])
-            # print("Retrieving saldo of {}, value {}".format(user_id, value))
+            print("Retrieving saldo of {}, value {}".format(user_id, value))
             return value
         return -1
 
@@ -104,9 +102,9 @@ class EWalletConsumer():
                 'nilai_saldo': final_value
             }, self.DB.user_id == user_id)
 
-            # print('Updating {}\'s saldo from {} to {}', user_id, initial_value, final_value)
+            print('Updating {}\'s saldo from {} to {}', user_id, initial_value, final_value)
             return 1
-        # print('Failed updating saldo. User id {} not found.'.format(user_id))
+        print('Failed updating saldo. User id {} not found.'.format(user_id))
         return -4
 
     # message = dict
@@ -117,13 +115,13 @@ class EWalletConsumer():
             self.db.update({
                 'ts': message['ts']
             }, self.DB.user_id == message['user_id'])
-            # print("DB updated: {}".format(message))
+            print("DB updated: {}".format(message))
         else:
             self.db.insert(message)
-            # print("DB inserted: {}".format(message))
+            print("DB inserted: {}".format(message))
 
     def _ping_callback(self, ch, method, properties, body):
-        # print("PING received: {}".format(body))
+        print("PING received: {}".format(body))
         body = json.loads(body)
 
         message = {
