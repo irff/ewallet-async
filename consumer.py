@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import time
 import json
 import pika
 import threading
@@ -8,7 +9,7 @@ from publisher import EWalletPublisher
 from tinydb import TinyDB, Query
 
 FULL_QUORUM = 8
-HALF_QUORUM = 3
+HALF_QUORUM = 5
 NO_QUORUM = 0
 
 class EWalletConsumer():
@@ -32,16 +33,18 @@ class EWalletConsumer():
 
     def _get_neighbors(self):
         return [
-            '1306398983',  # irfan
-            '1406579100',  # wahyu
+            '1306398983',  # functional
+            '1406579100',  # functional
+            '1406527620',  # functional
+            '1406572025',
+            '1406543712',
             '1406543826',
-            '1406527513',
             '1406543845',  # gilang
             # '1406543574',  # oda
             '1406559055',  # ghozi
             # '1406572025',  # adit
-            '1406543883',  # jefly
-            '1406559036',  # gales
+            # '1406543883',  # jefly
+            # '1406559036',  # gales
         ]
 
     def _get_active_neighbors(self):
@@ -237,6 +240,7 @@ class EWalletConsumer():
                     target=consumer.consume_saldo_response_total
                 )
                 consume_thread.start()
+                time.sleep(0.5)
 
                 for neighbor in active_neighbors:
                     print('Sending GET SALDO REQUEST to: {}'.format(neighbor))
@@ -337,8 +341,8 @@ class TotalSaldoConsumer():
         body = json.loads(body)
         nilai_saldo = int(body['nilai_saldo'])
 
-        print('USER_COUNT={}'.format(self.neighbor_count))
         self.neighbor_count -= 1
+        print('USER_COUNT={}'.format(self.neighbor_count))
 
         if nilai_saldo not in [-1, -2, -4, -99]:
             self.total_saldo += nilai_saldo
