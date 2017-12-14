@@ -117,11 +117,10 @@ class EWalletConsumer():
             self.db.insert(message)
             # print("DB inserted: {}".format(message))
 
-    def _timeout_callback(self, ch, method, properties, body):
+    def _timeout_callback(self):
         print('Not receiving any messages after 2 seconds timeout. Disconnecting channel.')
         if self.transfer_response_connection:
             self.transfer_response_connection.close()
-            self.transfer_response_connection = None
 
     def _ping_callback(self, ch, method, properties, body):
         # print("PING received: {}".format(body))
@@ -316,7 +315,6 @@ class EWalletConsumer():
     def consume_register_request(self):
         routing_key = 'REQ_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_register, self._register_request_callback)
-
 
     def consume_saldo_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
