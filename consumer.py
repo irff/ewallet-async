@@ -26,6 +26,9 @@ class EWalletConsumer():
         self.db = TinyDB('db.json')
         self.DB = Query()
 
+        self.transfer_user_id = None
+        self.transfer_nilai = None
+
     def _get_neighbors(self):
         return [
             '1306398983',  # irfan
@@ -86,7 +89,7 @@ class EWalletConsumer():
             return value
         return -1
 
-    def _add_saldo(self, user_id, nilai):
+    def _update_saldo(self, user_id, nilai):
         result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
         if result is not None:
             initial_value = result['nilai_saldo']
@@ -94,7 +97,10 @@ class EWalletConsumer():
             self.db.update({
                 'nilai_saldo': final_value
             }, self.DB.user_id == user_id)
+
+            print('Updating {}\'s saldo from {} to {}', user_id, initial_value, final_value)
             return 1
+        print('Failed updating saldo. User id {} not found.'.format(user_id))
         return -4
 
     # message = dict
@@ -172,6 +178,21 @@ class EWalletConsumer():
     def _transfer_response_callback(self, ch, method, properties, body):
         print('Received TRANSFER RESPONSE: {}'.format(body))
 
+        body = json.loads(body)
+        action = body['action']
+        status_transfer = int(body['status_transfer'])
+
+        if action == 'transfer':
+            if status_transfer == 1:
+                if self.transfer_user_id and self.transfer_nilai:
+                    # subtract current saldo
+                    self._update_saldo(user_id=self.transfer_user_id,
+                                       nilai=-self.transfer_nilai)
+
+                    ch.connection.close()
+                    self.transfer_user_id = None
+                    self.transfer_nilai = None
+
     def _transfer_request_callback(self, ch, method, properties, body):
         print('Received TRANSFER REQUEST: {}'.format(body))
 
@@ -180,7 +201,7 @@ class EWalletConsumer():
 
         try:
             if self._quorum_check() >= HALF_QUORUM:
-                status_transfer = self._add_saldo(body['user_id'], body['nilai'])
+                status_transfer = self._update_saldo(body['user_id'], body['nilai'])
             else:
                 status_transfer = -2
         except:
