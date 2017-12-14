@@ -41,6 +41,7 @@ class EWalletRunner():
 
     def do_register(self, user_id, nama, receiver_id):
         self.publisher.publish_register_request(user_id, nama, receiver_id)
+        self.consumer.consume_register_response()
 
     def do_get_saldo(self, user_id, receiver_id):
         self.publisher.publish_saldo_request(user_id, receiver_id)

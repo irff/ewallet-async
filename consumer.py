@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import json
 import pika
+import threading
 from datetime import datetime
 
 from publisher import EWalletPublisher
@@ -129,6 +130,7 @@ class EWalletConsumer():
 
     def _register_response_callback(self, ch, method, properties, body):
         print('Received REGISTER RESPONSE: {}'.format(body))
+        ch.connection.close()
 
     def _register_request_callback(self, ch, method, properties, body):
         print('Received REGISTER REQUEST: {}'.format(body))
@@ -231,13 +233,15 @@ class EWalletConsumer():
                                               publisher=self.publisher,
                                               neighbor_count=neighbor_count)
 
+                consume_thread = threading.Thread(
+                    target=consumer.consume_saldo_response_total
+                )
+                consume_thread.start()
+
                 for neighbor in active_neighbors:
                     print('Sending GET SALDO REQUEST to: {}'.format(neighbor))
                     self.publisher.publish_saldo_request(user_id, neighbor)
-
-                consumer.consume_saldo_response_total()
-
-            else:
+                            else:
                 nilai_saldo = -2
                 self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
                                                             sender_id=sender_id)
