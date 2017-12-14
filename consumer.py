@@ -305,8 +305,8 @@ class EWalletConsumer():
                               no_ack=True)
 
         self.transfer_response_connection = connection
-        connection.add_timeout(2, self._timeout_callback)
         channel.start_consuming()
+        connection.add_timeout(2, self._timeout_callback)
 
     def consume_register_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
