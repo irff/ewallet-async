@@ -361,7 +361,7 @@ class TotalSaldoConsumer():
         channel.queue_bind(exchange=self.ex_saldo,
                            queue=queue_name,
                            routing_key=routing_key)
-        channel.basic_consume(self._saldo_total_response_callback,
+        channel.basic_consume(consumer_callback=self._saldo_total_response_callback,
                               queue=queue_name,
                               no_ack=True)
         print('Starting consumption saldo response total')
