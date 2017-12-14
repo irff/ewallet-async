@@ -188,9 +188,10 @@ class EWalletConsumer():
                     # subtract current saldo
                     self._update_saldo(user_id=self.transfer_user_id,
                                        nilai=-self.transfer_nilai)
-                    ch.connection.close()
-                    self.transfer_user_id = None
-                    self.transfer_nilai = None
+
+        ch.connection.close()
+        self.transfer_user_id = None
+        self.transfer_nilai = None
 
     def _transfer_request_callback(self, ch, method, properties, body):
         print('Received TRANSFER REQUEST: {}'.format(body))
