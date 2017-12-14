@@ -26,6 +26,7 @@ class EWalletConsumer():
         self.db = TinyDB('db.json')
         self.DB = Query()
 
+        self.transfer_response_connection = None
         self.transfer_user_id = None
         self.transfer_nilai = None
 
@@ -115,6 +116,12 @@ class EWalletConsumer():
         else:
             self.db.insert(message)
             # print("DB inserted: {}".format(message))
+
+    def _timeout_callback(self, ch, method, properties, body):
+        print('Not receiving any messages after 2 seconds timeout. Disconnecting channel.')
+        if self.transfer_response_connection:
+            self.transfer_response_connection.close()
+            self.transfer_response_connection = None
 
     def _ping_callback(self, ch, method, properties, body):
         # print("PING received: {}".format(body))
@@ -280,7 +287,7 @@ class EWalletConsumer():
                               no_ack=True)
         channel.start_consuming()
 
-    def _get_direct(self, routing_key, exchange_name, callback):
+    def _consume_response(self, routing_key, exchange_name, callback):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
                                                                        credentials=self.credentials))
         channel = connection.channel()
@@ -294,12 +301,13 @@ class EWalletConsumer():
         channel.queue_bind(exchange=exchange_name,
                            queue=queue_name,
                            routing_key=routing_key)
-        method, props, body = channel.basic_get(queue=queue_name,
+        channel.basic_consume(consumer_callback=callback,
+                              queue=queue_name,
                               no_ack=True)
-        callback(channel, method, props, body)
 
+        self.transfer_response_connection = connection
+        connection.add_timeout(2, self._timeout_callback)
         channel.start_consuming()
-
 
     def consume_register_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
@@ -308,6 +316,7 @@ class EWalletConsumer():
     def consume_register_request(self):
         routing_key = 'REQ_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_register, self._register_request_callback)
+
 
     def consume_saldo_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
@@ -323,7 +332,7 @@ class EWalletConsumer():
 
     def consume_transfer_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
-        self._get_direct(routing_key, self.ex_transfer, self._transfer_response_callback)
+        self._consume_response(routing_key, self.ex_transfer, self._transfer_response_callback)
 
     def consume_total_saldo_request(self):
         routing_key = 'REQ_{}'.format(self.npm)
