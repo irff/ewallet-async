@@ -219,31 +219,31 @@ class EWalletConsumer():
         body = json.loads(body)
         sender_id = body['sender_id']
         user_id = body['user_id']
+        try:
+            active_neighbors = self._get_active_neighbors()
+            neighbor_count = len(active_neighbors)
 
-        active_neighbors = self._get_active_neighbors()
-        neighbor_count = len(active_neighbors)
+            if neighbor_count >= HALF_QUORUM:
 
-        if neighbor_count >= HALF_QUORUM:
+                consumer = TotalSaldoConsumer(queue_url=self.queue_url,
+                                              npm=self.npm,
+                                              publisher=self.publisher,
+                                              neighbor_count=neighbor_count)
 
-            consumer = TotalSaldoConsumer(queue_url=self.queue_url,
-                                          npm=self.npm,
-                                          publisher=self.publisher,
-                                          neighbor_count=neighbor_count)
+                for neighbor in active_neighbors:
+                    print('Sending GET SALDO REQUEST to: {}'.format(neighbor))
+                    self.publisher.publish_saldo_request(user_id, neighbor)
 
-            for neighbor in active_neighbors:
-                print('Sending GET SALDO REQUEST to: {}'.format(neighbor))
-                self.publisher.publish_saldo_request(user_id, neighbor)
+                consumer.consume_saldo_response_total()
 
-            consumer.consume_saldo_response_total()
-
-        else:
-            nilai_saldo = -2
+            else:
+                nilai_saldo = -2
+                self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
+                                                            sender_id=sender_id)
+        except:
+            nilai_saldo = -99
             self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
-                                                        sender_id=sender_id)
-
-        nilai_saldo = -99
-        self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
-                                                        sender_id=sender_id)
+                                                            sender_id=sender_id)
 
     def consume_ping(self):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queue_url,
