@@ -158,6 +158,7 @@ class EWalletConsumer():
 
     def _saldo_response_callback(self, ch, method, properties, body):
         print('Received GET SALDO RESPONSE: {}'.format(body))
+        ch.connection.close()
 
     def _saldo_request_callback(self, ch, method, properties, body):
         print('Received GET SALDO REQUEST: {}'.format(body))
@@ -288,7 +289,6 @@ class EWalletConsumer():
         routing_key = 'REQ_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_register, self._register_request_callback)
 
-
     def consume_saldo_response(self):
         routing_key = 'RESP_{}'.format(self.npm)
         self._consume_direct(routing_key, self.ex_saldo, self._saldo_response_callback)
@@ -341,6 +341,7 @@ class TotalSaldoConsumer():
         if self.neighbor_count <= 0:
             print('Closing connection')
             ch.connection.close()
+            print ('Publishing result response')
             self.publisher.publish_total_saldo_response(nilai_saldo=self.total_saldo,
                                                         sender_id=self.npm)
 
@@ -363,6 +364,8 @@ class TotalSaldoConsumer():
         channel.basic_consume(self._saldo_total_response_callback,
                               queue=queue_name,
                               no_ack=True)
-        print('Finish consuming saldo response total')
-        channel.start_consuming()
+        print('Starting consumption saldo response total')
+        while channel._consumer_infos:
+            channel.connection.process_data_events(time_limit=5)
+        channel.connection.close()
         print('Finish consuming saldo response total')

@@ -44,6 +44,7 @@ class EWalletRunner():
 
     def do_get_saldo(self, user_id, receiver_id):
         self.publisher.publish_saldo_request(user_id, receiver_id)
+        self.consumer.consume_saldo_response()
 
     def do_transfer(self, user_id, nilai, receiver_id):
         self.consumer.transfer_user_id = user_id
