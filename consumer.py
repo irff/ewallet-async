@@ -37,7 +37,7 @@ class EWalletConsumer():
             '1406579100',  # functional
             '1406527620',  # functional
             '1406572025',
-            '1406543712',
+            # '1406543712',
             '1406543826',
             '1406543845',  # gilang
             # '1406543574',  # oda
@@ -62,19 +62,19 @@ class EWalletConsumer():
                     ts_neighbor = datetime.strptime(ts_neighbor_str, '%Y-%m-%d %H:%M:%S')
 
                     ts_diff = (ts_now - ts_neighbor).seconds
-                    print('PING Time diff {}: {} seconds'.format(neighbor, ts_diff))
+                    # print('PING Time diff {}: {} seconds'.format(neighbor, ts_diff))
                     if ts_diff <= 10:
                         active.append(neighbor)
                 else:
-                    print('PING Not found {}'.format(neighbor))
+                    # print('PING Not found {}'.format(neighbor))
             except Exception as e:
-                print('Error retrieving from db: {}'.format(e.message))
+                # print('Error retrieving from db: {}'.format(e.message))
 
         return active
 
     def _quorum_check(self):
         quorum = len(self._get_active_neighbors())
-        print('QUORUM={}'.format(quorum))
+        # print('QUORUM={}'.format(quorum))
 
         return quorum
 
