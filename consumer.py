@@ -116,6 +116,10 @@ class EWalletConsumer():
             self.db.insert(message)
             # print("DB inserted: {}".format(message))
 
+    def _timeout_callback(self, ch, method, properties, body):
+        print('Not receiving any messages after 2 seconds timeout. Disconnecting channel.')
+        ch.connection.close()
+
     def _ping_callback(self, ch, method, properties, body):
         # print("PING received: {}".format(body))
         body = json.loads(body)
@@ -278,6 +282,7 @@ class EWalletConsumer():
         channel.basic_consume(consumer_callback=callback,
                               queue=queue_name,
                               no_ack=True)
+        connection.add_timeout(2, self._timeout_callback)
         channel.start_consuming()
 
     def consume_register_response(self):
