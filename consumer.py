@@ -30,32 +30,38 @@ class EWalletConsumer():
         return [
             '1306398983',  # irfan
             '1406579100',  # wahyu
-            '1406543574',  # oda
+            '1406543826',
+            '1406527513'
             '1406543845',  # gilang
+            # '1406543574',  # oda
             '1406559055',  # ghozi
-            '1406572025',  # adit
+            # '1406572025',  # adit
             '1406543883',  # jefly
             '1406559036',  # gales
         ]
 
     def _get_active_neighbors(self):
+        print('Checking QUORUM')
         neighbors = self._get_neighbors()
         active = []
 
         for neighbor in neighbors:
-            result = self.db.get((self.DB.user_id == neighbor) & (self.DB.ts.exists()))
+            try:
+                result = self.db.get((self.DB.user_id == neighbor) & (self.DB.ts.exists()))
 
-            if result is not None:
-                ts_now = datetime.now()
-                ts_neighbor_str = result['ts']
-                ts_neighbor = datetime.strptime(ts_neighbor_str, '%Y-%m-%d %H:%M:%S')
+                if result is not None:
+                    ts_now = datetime.now()
+                    ts_neighbor_str = result['ts']
+                    ts_neighbor = datetime.strptime(ts_neighbor_str, '%Y-%m-%d %H:%M:%S')
 
-                ts_diff = (ts_now - ts_neighbor).seconds
-                print('PING Time diff {}: {} seconds'.format(neighbor, ts_diff))
-                if ts_diff <= 10:
-                    active.append(neighbor)
-            else:
-                print('PING Not found {}'.format(neighbor))
+                    ts_diff = (ts_now - ts_neighbor).seconds
+                    print('PING Time diff {}: {} seconds'.format(neighbor, ts_diff))
+                    if ts_diff <= 10:
+                        active.append(neighbor)
+                else:
+                    print('PING Not found {}'.format(neighbor))
+            except Exception as e:
+                print('Error retrieving from db: {}'.format(e.message))
 
         return active
 
