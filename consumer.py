@@ -48,7 +48,7 @@ class EWalletConsumer():
         ]
 
     def _get_active_neighbors(self):
-        print('Checking QUORUM')
+        # print('Checking QUORUM')
         neighbors = self._get_neighbors()
         active = []
 
@@ -66,8 +66,10 @@ class EWalletConsumer():
                     if ts_diff <= 10:
                         active.append(neighbor)
                 else:
+                    pass
                     # print('PING Not found {}'.format(neighbor))
             except Exception as e:
+                pass
                 # print('Error retrieving from db: {}'.format(e.message))
 
         return active
@@ -81,7 +83,7 @@ class EWalletConsumer():
     def _has_registered(self, user_id):
         result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
         if result is not None:
-            print("{} has registered".format(user_id))
+            # print("{} has registered".format(user_id))
             return True
         return False
 
@@ -89,7 +91,7 @@ class EWalletConsumer():
         result = self.db.get((self.DB.user_id == user_id) & (self.DB.nilai_saldo.exists()))
         if result is not None:
             value = int(result['nilai_saldo'])
-            print("Retrieving saldo of {}, value {}".format(user_id, value))
+            # print("Retrieving saldo of {}, value {}".format(user_id, value))
             return value
         return -1
 
@@ -102,9 +104,9 @@ class EWalletConsumer():
                 'nilai_saldo': final_value
             }, self.DB.user_id == user_id)
 
-            print('Updating {}\'s saldo from {} to {}', user_id, initial_value, final_value)
+            # print('Updating {}\'s saldo from {} to {}', user_id, initial_value, final_value)
             return 1
-        print('Failed updating saldo. User id {} not found.'.format(user_id))
+        # print('Failed updating saldo. User id {} not found.'.format(user_id))
         return -4
 
     # message = dict
@@ -136,7 +138,7 @@ class EWalletConsumer():
         ch.connection.close()
 
     def _register_request_callback(self, ch, method, properties, body):
-        print('Received REGISTER REQUEST: {}'.format(body))
+        # print('Received REGISTER REQUEST: {}'.format(body))
 
         body = json.loads(body)
         sender_id = body['sender_id']
