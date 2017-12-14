@@ -55,5 +55,8 @@ class EWalletRunner():
         self.consumer.consume_transfer_response()
 
     def do_get_total_saldo(self, user_id, receiver_id):
+        consumer = threading.Thread(
+            target=self.consumer.consume_total_saldo_response
+        )
+        consumer.start()
         self.publisher.publish_total_saldo_request(user_id, receiver_id)
-        self.consumer.consume_total_saldo_response()
