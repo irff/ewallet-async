@@ -241,7 +241,7 @@ class EWalletConsumer():
                 for neighbor in active_neighbors:
                     print('Sending GET SALDO REQUEST to: {}'.format(neighbor))
                     self.publisher.publish_saldo_request(user_id, neighbor)
-                            else:
+            else:
                 nilai_saldo = -2
                 self.publisher.publish_total_saldo_response(nilai_saldo=nilai_saldo,
                                                             sender_id=sender_id)
