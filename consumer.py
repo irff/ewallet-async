@@ -366,8 +366,7 @@ class TotalSaldoConsumer():
                               no_ack=True)
         print('Starting consumption saldo response total')
 
-        while channel._consumer_infos:
-            channel.connection.process_data_events(time_limit=5)
+        channel.start_consuming()
 
-        channel.connection.close()
         print('Finish consuming saldo response total')
+        channel.connection.close()
