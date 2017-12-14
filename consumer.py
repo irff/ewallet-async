@@ -7,7 +7,7 @@ from publisher import EWalletPublisher
 from tinydb import TinyDB, Query
 
 FULL_QUORUM = 8
-HALF_QUORUM = 5
+HALF_QUORUM = 3
 NO_QUORUM = 0
 
 class EWalletConsumer():
@@ -212,6 +212,7 @@ class EWalletConsumer():
 
     def _total_saldo_response_callback(self, ch, method, properties, body):
         print('Received GET TOTAL SALDO RESPONSE: {}'.format(body))
+        ch.connection.close()
 
     def _total_saldo_request_callback(self, ch, method, properties, body):
         print('Received GET TOTAL SALDO REQUEST: {}'.format(body))
