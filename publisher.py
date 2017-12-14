@@ -169,7 +169,7 @@ class EWalletPublisher():
 
         self.publish_direct(self.ex_register, routing_key, message)
 
-        # print("Published REGISTER RESPONSE message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
+        print("Published REGISTER RESPONSE message ({}), to exchange {}, routing key {}".format(message, self.ex_register, routing_key))
 
     def publish_saldo_request(self, user_id, receiver_id):
         routing_key = 'REQ_{}'.format(receiver_id)

@@ -138,7 +138,7 @@ class EWalletConsumer():
         ch.connection.close()
 
     def _register_request_callback(self, ch, method, properties, body):
-        # print('Received REGISTER REQUEST: {}'.format(body))
+        print('Received REGISTER REQUEST: {}'.format(body))
 
         body = json.loads(body)
         sender_id = body['sender_id']
