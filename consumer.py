@@ -230,11 +230,11 @@ class EWalletConsumer():
                                           publisher=self.publisher,
                                           neighbor_count=neighbor_count)
 
-            consumer.consume_saldo_response_total()
-
             for neighbor in active_neighbors:
                 print('Sending GET SALDO REQUEST to: {}'.format(neighbor))
                 self.publisher.publish_saldo_request(user_id, neighbor)
+
+            consumer.consume_saldo_response_total()
 
         else:
             nilai_saldo = -2
@@ -365,7 +365,9 @@ class TotalSaldoConsumer():
                               queue=queue_name,
                               no_ack=True)
         print('Starting consumption saldo response total')
+
         while channel._consumer_infos:
             channel.connection.process_data_events(time_limit=5)
+
         channel.connection.close()
         print('Finish consuming saldo response total')
